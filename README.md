@@ -1,0 +1,1 @@
+# scotus_rulings
