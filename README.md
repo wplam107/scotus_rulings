@@ -1,5 +1,6 @@
 # Similarity of Supreme Court Justices from 1999 to 2019
 Contributors: Wayne Lam
+
 Data: wikipedia.org (scraped)
 
 ## Motivation
