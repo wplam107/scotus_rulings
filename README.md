@@ -11,3 +11,8 @@ This project hopefully is able to produce insight into ideological similarity of
 ## EDA
 ### Supreme Court Justice Cosine Similarity
 <img src="images/heatmap.png" height="500" width="600">
+
+### Current Term Justice Similarity
+A 2-component projection of opinions on 110 cases
+
+<img src="images/cterm_pca.png" height="500" width="500>
