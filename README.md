@@ -12,7 +12,7 @@ This project hopefully is able to produce insight into ideological similarity of
 ### Supreme Court Justice Cosine Similarity
 <img src="images/heatmap.png" height="500" width="600">
 
-### Current Term Justice Similarity
-A 2-component projection of opinions on 110 cases
+### Justice Similarity by Courts
+A 2-component projection of justice opinions
 
-<img src="images/c_term.png" height="400" width="600">
+<img src="images/c_term.png" height="500" width="800">
