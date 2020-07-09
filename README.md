@@ -10,4 +10,4 @@ This project hopefully is able to produce insight into ideological similarity of
 
 ## EDA
 ### Supreme Court Justice Cosine Similarity
-<img src="images/heatmap.png" height="200" width="150">
+<img src="images/heatmap.png" height="500" width="500">
