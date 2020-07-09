@@ -15,4 +15,4 @@ This project hopefully is able to produce insight into ideological similarity of
 ### Current Term Justice Similarity
 A 2-component projection of opinions on 110 cases
 
-<img src="images/c_term.png" height="500" width="700">
+<img src="images/c_term.png" height="400" width="600">
