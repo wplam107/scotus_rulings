@@ -55,9 +55,9 @@ class scotus(object):
     def __repr__(self):
         return f'Justices: {len(self.justices)}\nCases: {len(self.df.columns)}\nCourts: {len(self.courts)}'
         
-    def justice_term(self, justice):
+    def justice_term(self, justice, verbose=False):
         '''
-        Cosine similarity of a justice
+        Returns dictionary of cosine similarities for a justice
         '''
         
         assert justice in self.justices, f'Not a justice between 1999-2019.\nChoose one of {self.justices}'
@@ -76,20 +76,24 @@ class scotus(object):
             else:
                 no_sim.append(j)
         
-        # Print results
+        # Return and/or print results
         sim = { k: v for k, v in sorted(sim.items(), key=lambda item: item[1], reverse=True) }
         ordered = list(sim.keys())
-        print(f'Justice {justice} Cosine Similarity: (descending similarity)')
-        print(20*'-')
-        for j in ordered:
-            print(f'{j}:', sim[j])
-            if j == ordered[-1]:
-                print(20*'-')
-        if len(no_sim) > 0:
-            print('No rulings with:')
+
+        if verbose:
+            print(f'Justice {justice} Cosine Similarity: (descending similarity)')
             print(20*'-')
-            for j in no_sim:
-                print(f'{j}')
+            for j in ordered:
+                print(f'{j}:', sim[j])
+                if j == ordered[-1]:
+                    print(20*'-')
+            if len(no_sim) > 0:
+                print('No rulings with:')
+                print(20*'-')
+                for j in no_sim:
+                    print(f'{j}')
+        
+        return sim
         
                 
     def sim_matrix(self, all_justices=True):
@@ -125,7 +129,23 @@ class scotus(object):
         temp_df = pd.DataFrame([ self.df.loc[j] for j in self.courts[court_num] ]).dropna(axis=1)
         X = temp_df.values
         pca = PCA(n_components=2)
-        comps = pd.DataFrame(pca.fit_transform(X), columns=['x', 'y'])
-        comps['justice'] = temp_df.index
+        comp = pd.DataFrame(pca.fit_transform(X), columns=['x', 'y'])
+        comp['justice'] = temp_df.index
         
-        return comps
+        return comp
+
+    def justice_courts(self, justice):
+        '''
+        Set a justice
+        '''
+        courts = []
+        for i, court in enumerate(self.courts):
+            if justice in court:
+                courts.append(i)
+        self.j_courts = courts
+        self.current_j = justice
+
+    def _two_dims(self, courts):
+        assert self.j_courts, 'Choose justice with justice_courts'
+        comps = [ two_dim_court(court) for court in self.j_courts ]
+        self.comps = comps
