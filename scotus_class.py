@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from scipy.spatial.distance import cosine
+from sklearn.metrics.pairwise import cosine_similarity, manhattan_distances, euclidean_distances
 from sklearn.decomposition import PCA
 
 # Create class object encapsulating relevent data and methods
@@ -64,15 +64,15 @@ class scotus(object):
         js = list(self.justices)
         js.remove(justice)
         
-        # Create dictionary {justice: cosine similarity}
+        # Create dictionary {justice: similarity}
         no_sim = []
         sim = {}
         for j in js:
             anb = np.where(self.df.loc[justice].notna() & self.df.loc[j].notna(), self.df.columns, np.nan)
             if len([ x for x in anb if str(x) != 'nan' ]) != 0:
-                j_a = self.df[[ x for x in anb if str(x) != 'nan' ]].loc[justice]
-                j_b = self.df[[ x for x in anb if str(x) != 'nan' ]].loc[j]
-                sim[j] = round(1 - cosine(j_a, j_b), 4)
+                j_a = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[justice])
+                j_b = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[j])
+                sim[j] = np.round(cosine_similarity(j_a.reshape(1, len(j_a)), j_b.reshape(1, len(j_a))), 4)
             else:
                 no_sim.append(j)
         
@@ -96,7 +96,7 @@ class scotus(object):
         return sim
         
                 
-    def sim_matrix(self, all_justices=True):
+    def sim_matrix(self):
         '''
         Return cosine similarity matrix (Numpy array)
         '''
@@ -109,9 +109,9 @@ class scotus(object):
             for j in range(l):   
                 anb = np.where(self.df.loc[jus[i]].notna() & self.df.loc[jus[j]].notna(), self.df.columns, np.nan)
                 if len([ x for x in anb if str(x) != 'nan' ]) != 0:
-                    j_a = self.df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[i]]
-                    j_b = self.df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[j]]
-                    self.sim_mat[i][j] = round(1 - cosine(j_a, j_b), 4)
+                    j_a = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[i]])
+                    j_b = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[j]])
+                    self.sim_mat[i][j] = np.round(cosine_similarity(j_a.reshape(1, len(j_a)), j_b.reshape(1, len(j_a))), 4)
                 else:
                     self.sim_mat[i][j] = np.nan
             
