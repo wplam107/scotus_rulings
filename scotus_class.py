@@ -9,6 +9,7 @@ class scotus(object):
     def __init__(self, df):
         self.df = df
         self.justices = list(df.index)
+        self.current_justice = None
         
         # Case ranges
         self.j_cases = {}
@@ -54,47 +55,6 @@ class scotus(object):
     
     def __repr__(self):
         return f'Justices: {len(self.justices)}\nCases: {len(self.df.columns)}\nCourts: {len(self.courts)}'
-        
-    def justice_term(self, justice, verbose=False):
-        '''
-        Returns dictionary of cosine similarities for a justice
-        '''
-        
-        assert justice in self.justices, f'Not a justice between 1999-2019.\nChoose one of {self.justices}'
-        js = list(self.justices)
-        js.remove(justice)
-        
-        # Create dictionary {justice: similarity}
-        no_sim = []
-        sim = {}
-        for j in js:
-            anb = np.where(self.df.loc[justice].notna() & self.df.loc[j].notna(), self.df.columns, np.nan)
-            if len([ x for x in anb if str(x) != 'nan' ]) != 0:
-                j_a = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[justice])
-                j_b = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[j])
-                sim[j] = np.round(cosine_similarity(j_a.reshape(1, len(j_a)), j_b.reshape(1, len(j_a))), 4)
-            else:
-                no_sim.append(j)
-        
-        # Return and/or print results
-        sim = { k: v for k, v in sorted(sim.items(), key=lambda item: item[1], reverse=True) }
-        ordered = list(sim.keys())
-
-        if verbose:
-            print(f'Justice {justice} Cosine Similarity: (descending similarity)')
-            print(20*'-')
-            for j in ordered:
-                print(f'{j}:', sim[j])
-                if j == ordered[-1]:
-                    print(20*'-')
-            if len(no_sim) > 0:
-                print('No rulings with:')
-                print(20*'-')
-                for j in no_sim:
-                    print(f'{j}')
-        
-        return sim
-        
                 
     def sim_matrix(self, metric='cosine'):
         '''
@@ -138,12 +98,14 @@ class scotus(object):
         '''
         Set a justice
         '''
+
+        assert justice in self.justices, f'Not a justice between 1999-2019.\nChoose one of {self.justices}'
+        self.current_justice = justice
         courts = []
         for i, court in enumerate(self.courts):
             if justice in court:
                 courts.append(i)
         self.j_courts = courts
-        self.current_j = justice
 
     def _two_dims(self, courts):
         assert self.j_courts, 'Choose justice with justice_courts'
