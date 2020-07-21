@@ -96,14 +96,14 @@ class scotus(object):
         return sim
         
                 
-    def sim_matrix(self):
+    def sim_matrix(self, metric='cosine'):
         '''
-        Return cosine similarity matrix (Numpy array)
+        Return similarity matrix (Numpy array)
         '''
 
         jus = list(self.justices)
         l = len(jus)
-        self.sim_mat = np.zeros((l,l))
+        sim_mat = np.zeros((l,l))
         
         for i in range(l):
             for j in range(l):   
@@ -111,13 +111,13 @@ class scotus(object):
                 if len([ x for x in anb if str(x) != 'nan' ]) != 0:
                     j_a = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[i]])
                     j_b = np.array(self.df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[j]])
-                    self.sim_mat[i][j] = np.round(cosine_similarity(j_a.reshape(1, len(j_a)), j_b.reshape(1, len(j_a))), 4)
+                    sim_mat[i][j] = np.round(cosine_similarity(j_a.reshape(1, len(j_a)), j_b.reshape(1, len(j_a))), 4)
                 else:
-                    self.sim_mat[i][j] = np.nan
+                    sim_mat[i][j] = np.nan
             
         del jus
         del l
-        return self.sim_mat
+        return sim_mat
     
     def two_dim_court(self, court_num):
         '''
