@@ -14,7 +14,7 @@ def string_2_ints(s):
     for x in set(list(s)):
         try:
             if int(x) > 2: # Any dissent is assigned as dissent against majority opinion
-                nums.append(2)
+                nums.append(-1)
             elif int(x) <= 2:
                 nums.append(1)
             elif str(x) == 'nan':
@@ -39,6 +39,16 @@ def string_2_multi(s):
             nums.append(int(x))
         except:
             continue
-            
+    nums = np.floor(np.mean(nums))
+    if nums == 1:
+        value = 2
+    elif nums == 2:
+        value = 1
+    elif nums == 3:
+        value = -1
+    elif nums == 4:
+        value = -2
+    else:
+        value == np.nan
     # Return floor of mean value of justices' opinions
-    return np.floor(np.mean(nums))
+    return value
