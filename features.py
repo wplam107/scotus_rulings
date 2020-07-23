@@ -1,3 +1,4 @@
+# Script for converting scraped data to similarity matrices and PCA matrix
 import numpy as np
 import pandas as pd
 import pickle

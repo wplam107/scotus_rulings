@@ -1,3 +1,4 @@
+# Script to scrape data
 from scrape_functions import *
 
 if __name__ == '__main__':
