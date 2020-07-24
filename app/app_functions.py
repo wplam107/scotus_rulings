@@ -221,4 +221,4 @@ def default_pic():
     fig.update_xaxes(visible=False)
     fig.update_yaxes(visible=False)
     fig.update_layout(title='Choose Justice', template='simple_white')
-    return fig
+    return fig 
