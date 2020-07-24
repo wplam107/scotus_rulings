@@ -21,7 +21,7 @@ if __name__ == '__main__':
     sim_matrices = [ get_sim(court) for court in all_court_opinions ]
 
     # Get single similarity matrix for all justices
-    sim_df = all_sim(mul_df)
+    sim_df, total_df = all_sim(mul_df)
 
     # Pickle data
     with open('./app/data/courts.p', 'wb') as f:
@@ -38,6 +38,9 @@ if __name__ == '__main__':
 
     with open('./app/data/multi_df.p', 'wb') as f:
         pickle.dump(mul_df, f)
+
+    with open('./app/data/total_df.p', 'wb') as f:
+        pickle.dump(total_df, f)
 
     print('Files created')
 

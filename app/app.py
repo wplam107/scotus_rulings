@@ -168,4 +168,4 @@ def update_heatmap(selected_court):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run_server()
