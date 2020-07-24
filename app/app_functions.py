@@ -20,14 +20,14 @@ def animated_2comp(df, select_courts):
     '''
     Returns Plotly 2 component scatter plot figure
     '''
-    if select_courts == [0]:
-        temp_df = df.loc[df['court'] == 0]
+    if len(select_courts) == 1:
+        temp_df = df.loc[df['court'] == select_courts[0]]
         fig = px.scatter(temp_df, x='pc1', y='pc2',
                         text='justice',
                         title='Justices Along 2 Components (PCA)',
                         labels={'pc1': 'Principal Component 1', 'pc2': 'Principal Component 2'},
-                        width=500,
-                        height=500,
+                        # width=400,
+                        # height=400,
                         range_x=(-0.2, 1.2),
                         range_y=(-0.2, 1.2),
                         )
@@ -41,8 +41,8 @@ def animated_2comp(df, select_courts):
                         text='justice',
                         title='Justices Along 2 Components (PCA)',
                         labels={'pc1': 'Principal Component 1', 'pc2': 'Principal Component 2'},
-                        width=600,
-                        height=600,
+                        # width=400,
+                        # height=400,
                         range_x=(-0.2, 1.2),
                         range_y=(-0.2, 1.2),
                         )
@@ -51,16 +51,27 @@ def animated_2comp(df, select_courts):
         fig.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 3000
     return fig
 
-def sim_heatmap(sim_mat, justices):
+def sim_heatmap(sim_mat, justices, all_justices=False):
     '''
     Returns Plotly heatmap figure
     '''
-    fig = go.Figure(data=(go.Heatmap(z=sim_mat, x=justices, y=justices, colorscale='Inferno')))
-    fig.update_layout(title='Heatmap of Cosine Similarity Between Justices',
-                      height=600,
-                      width=600,
-                      template='simple_white',
-                     )
+    fig = go.Figure(data=(go.Heatmap(
+        z=sim_mat, x=justices, y=justices, colorscale='Inferno',
+        hovertemplate='Similarity between %{x} and %{y}: %{z}')))
+
+    if all_justices:
+        fig.update_layout(title='Heatmap of Cosine Similarity Between Justices',
+                        height=600,
+                        width=600,
+                        template='simple_white',
+                        )
+    else:
+        fig.update_layout(title='Heatmap of Cosine Similarity Between Justices in Selected Court',
+                        # height=400,
+                        # width=400,
+                        template='simple_white',
+                        )
+
     return fig
 
 # Scale data helper function
@@ -101,6 +112,10 @@ def build_network(df):
 # Helper function to treat each edge as a separate trace
 def get_edge_traces(G, pos, df):
     edge_traces = []
+    mid_x = []
+    mid_y = []
+    mid_text = []
+
     for edge in G.edges():
         edge_x = []
         edge_y = []
@@ -113,16 +128,23 @@ def get_edge_traces(G, pos, df):
         edge_y.append(y1)
         edge_y.append(None)
         
-        # Exponent and multiplier applied to weight of edges
-        width = 10 * df.loc[edge[0]][edge[1]]**3
+        cases = df.loc[edge[0]][edge[1]]
+        width = cases / 800
         edge_trace = go.Scatter(
             x=edge_x, y=edge_y,
             line=dict(width=width, color='red'),
-            hoverinfo='none',
             mode='lines')
         edge_traces.append(edge_trace)
+        mid_x.append((x0+x1)/2)
+        mid_y.append((y0+y1)/2)
+        mid_text.append(f'Cases worked between {edge[0]} and {edge[1]}: {int(cases)}')
+
+    middle_node_trace = go.Scatter(
+        x=mid_x, y=mid_y, text=mid_text,
+        mode='markers', hoverinfo='text', marker=go.scatter.Marker(opacity=0)
+    )
         
-    return edge_traces
+    return edge_traces, middle_node_trace
 
 # Helper function to get node trace
 def get_node_trace(G, pos, sim_df, cases_df):
@@ -150,17 +172,53 @@ def plot_network(sim_df, cases_df):
     Returns Plotly figure for networkX graph
     '''
     G, pos = build_network(sim_df)
-    edge_traces = get_edge_traces(G, pos, sim_df)
+    edge_traces, middle_node_trace = get_edge_traces(G, pos, sim_df)
     node_trace = get_node_trace(G, pos, sim_df, cases_df)
     
     fig = go.Figure(
-        data=edge_traces+[node_trace],
+        data=edge_traces+[node_trace]+[middle_node_trace],
         layout=go.Layout(
-            title='SCOTUS Similarity as Network Graph',
+            title='SCOTUS 1999-2019 as Network Graph',
             showlegend=False,
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            template='plotly_white'
+            template='plotly_white',
+            height=600,
+            width=600,
         )
     )
+    return fig
+
+# Helper function for most similar
+def most_similar(df, j1):
+    similarity = {}
+    other_justices = list(df.index)
+    other_justices.remove(j1)
+    for j2 in other_justices:
+        temp_df = df.loc[[j1, j2]].dropna(axis=1)
+        if len(temp_df.columns) != 0:
+            X1 = np.array(temp_df.loc[j1])
+            X2 = np.array(temp_df.loc[j2])
+            similarity[j2] = round(float(cosine_similarity(X1.reshape(1, len(X1)), X2.reshape(1, len(X2)))), 3)
+    return similarity
+
+def plot_most_similar(df, j1):
+    '''
+    Returns Plotly figure to plot most similar
+    '''
+    dicty = most_similar(df, j1)
+    x = list(dicty.keys())
+    y = list(dicty.values())
+    
+    fig = go.Figure(go.Bar(x=y, y=x, orientation='h'))
+    fig.update_layout(title=f'Justice {j1} Similarity', yaxis={'categoryorder':'total ascending'})
+    
+    return fig
+
+# Blank figure
+def default_pic():
+    fig = go.Figure()
+    fig.update_xaxes(visible=False)
+    fig.update_yaxes(visible=False)
+    fig.update_layout(title='Choose Justice', template='simple_white')
     return fig
