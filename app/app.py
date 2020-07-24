@@ -27,6 +27,16 @@ with open('./data/pca_df.p', 'rb') as f:
 with open('./data/sim_mats.p', 'rb') as f:
     sim_mats = pickle.load(f)
 
+# Similarity DataFrame of all justices
+with open('./data/sim_df.p', 'rb') as f:
+    sim_df = pickle.load(f)
+
+# Cases DataFrame
+with open('./data/multi_df.p', 'rb') as f:
+    big_df = pickle.load(f)
+
+justices = list(sim_df.index)
+
 # Get justice options
 justice_options = ['All'] + get_justices(courts)
 
@@ -43,19 +53,29 @@ More on cosine similarity at [Wikipedia](https://en.wikipedia.org/wiki/Cosine_si
 '''
 
 app.layout = html.Div(children=[
-    html.Div(
-        className='banner',
-        children=[
-            html.H1(
-                id='banner-title',
-                children=[
-                    html.A(
-                        'SCOTUS Dashboard',
-                        href='https://github.com/wplam107/scotus_rulings',
-                    )
-                ],
-            )
+    html.Div(children=[
+        html.H1(
+            html.A('SCOTUS Dashboard', href='https://github.com/wplam107/scotus_rulings')
+        )
     ]),
+
+    html.Div(children=[
+        html.Div(children=[
+            dcc.Graph(
+                id='network-graph',
+                figure=plot_network(sim_df, big_df)
+            )
+        ], className='six columns'
+        ),
+        html.Div(children=[
+            dcc.Graph(
+                id='all-sim',
+                figure=sim_heatmap(sim_df, justices)
+            )
+        ], className='six columns'
+        ),
+    ], className='row'
+    ),
 
     html.Div(children=[
         html.Div(children=[dcc.Markdown(children=markdown_1)], className='six columns'),
@@ -65,28 +85,32 @@ app.layout = html.Div(children=[
 
     html.Hr(),
 
-    html.Div([
-        html.Div(children='Select Justice'),
-        dcc.Dropdown(
-            id='justice-select',
-            options=[{'label': j, 'value': j} for j in justice_options],
-            value = 'All',
-            clearable=False,
-        ),
-        dcc.Graph(id='pca-graph'),
-    ],
-    style={'width': '49%', 'float': 'left', 'display': 'inline-block'}),
+    html.Div(children=[
+        html.Div(children=[
+            html.Div(children='Select Justice'),
+            dcc.Dropdown(
+                id='justice-select',
+                options=[{'label': j, 'value': j} for j in justice_options],
+                value = 'All',
+                clearable=False,
+            ),
+        ], className='six columns'),
+        html.Div(children=[
+            html.Div(children='Select Court'),
+            dcc.Dropdown(
+                id='court-select',
+                value = 0,
+                clearable=False,
+            ),
+        ], className='six columns'),
+    ], className='row'
+    ),
 
-    html.Div([
-        html.Div(children='Select Court'),
-        dcc.Dropdown(
-            id='court-select',
-            value = 0,
-            clearable=False,
-        ),
-        dcc.Graph(id='heatmap-graph'),
-    ],
-    style={'width': '49%', 'float': 'right', 'display': 'inline-block'}),
+    html.Div(children=[
+        html.Div(dcc.Graph(id='pca-graph'), className='six columns'),
+        html.Div(dcc.Graph(id='heatmap-graph'), className='six columns'),
+    ], className='row'
+    ),
 ])
 
 @app.callback(

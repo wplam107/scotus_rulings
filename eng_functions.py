@@ -139,3 +139,24 @@ def get_sim(court_op):
             j_b = j_b.reshape(1, len(j_b))
             sim_mat[i][j] = np.round(cosine_similarity(j_a, j_b), 4)
     return sim_mat
+
+def all_sim(df):
+    '''
+    Returns a similarity DataFrame for all justices (justices who did no serve together are NaN values)
+    '''
+    jus = list(df.index)
+    l = len(jus)
+    sim_mat = np.zeros((l,l))
+
+    for i in range(l):
+        for j in range(l):   
+            anb = np.where(df.loc[jus[i]].notna() & df.loc[jus[j]].notna(), df.columns, np.nan)
+            if len([ x for x in anb if str(x) != 'nan' ]) != 0:
+                j_a = np.array(df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[i]])
+                j_b = np.array(df[[ x for x in anb if str(x) != 'nan' ]].loc[jus[j]])
+                sim_mat[i][j] = np.round(cosine_similarity(j_a.reshape(1, len(j_a)), j_b.reshape(1, len(j_a))), 4)
+            else:
+                sim_mat[i][j] = np.nan
+    
+    sim_mat = pd.DataFrame(sim_mat, index=jus, columns=jus)
+    return sim_mat
