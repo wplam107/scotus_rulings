@@ -99,7 +99,7 @@ app.layout = html.Div(children=[
     ], className='row'
     ),
 
-    html.Hr(),
+    html.Hr(), html.Hr(),
 
     html.Div(children=[
         html.Div(children=[dcc.Markdown(children=markdown_3)], className='six columns'),
@@ -129,15 +129,22 @@ app.layout = html.Div(children=[
     ),
 
     html.Div(children=[
-        html.Div(dcc.Graph(id='most-similar'), className='four columns'),
-        html.Div(dcc.Graph(id='pca-graph'), className='four columns'),
-        html.Div(dcc.Graph(id='heatmap-graph'), className='four columns'),
+        html.Div(dcc.Graph(id='most-similar'), className='six columns'),
+        html.Div(dcc.Graph(id='court-sim'), className='six columns'),
+    ], className='row'
+    ),
+
+    html.Div(children=[
+        html.Div(dcc.Graph(id='pca-graph'), className='six columns'),
+        html.Div(dcc.Graph(id='heatmap-graph'), className='six columns'),
     ], className='row'
     ),
 ])
 
 @app.callback(
-    [Output('court-select', 'options'), Output('pca-graph', 'figure'), Output('most-similar', 'figure')],
+    [Output('court-select', 'options'),
+    Output('pca-graph', 'figure'),
+    Output('most-similar', 'figure')],
     [Input('justice-select', 'value')]
 )
 def set_court_options(selected_justice):
@@ -157,15 +164,34 @@ def set_court_options(selected_justice):
         return [ {'label': ' '.join(courts[c]), 'value': c} for c in j_courts ], fig1, fig2
 
 @app.callback(
-    Output('heatmap-graph', 'figure'),
-    [Input('court-select', 'value')]
+    [Output('heatmap-graph', 'figure'),
+    Output('court-sim', 'figure')],
+    [Input('court-select', 'value'),
+    Input('justice-select', 'value')]
 )
-def update_heatmap(selected_court):
-    justices = courts[selected_court]
-    sim_mat = sim_mats[selected_court]
-    fig = sim_heatmap(sim_mat, justices)
-    return fig
+def update_heatmap(selected_court, selected_justice):
+    if selected_justice == 'All':
+        js = courts[selected_court]
+        sim_mat = sim_mats[selected_court]
+        fig1 = sim_heatmap(sim_mat, js)
+        fig2 = default_pic2()
+        return fig1, fig2
+    else:
+        js = courts[selected_court]
+        sim_mat = sim_mats[selected_court]
+        fig1 = sim_heatmap(sim_mat, js)
+        if selected_justice in js:
+            fig2 = plot_most_similar_2(big_df, selected_justice, js)
+        else:
+            fig2 = default_pic2()
+        return fig1, fig2
+    # else:
+    #     js = courts[selected_court]
+    #     sim_mat = sim_mats[selected_court]
+    #     fig1 = sim_heatmap(sim_mat, js)
+    #     fig2 = default_pic()
+    #     return fig1, fig2
 
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)

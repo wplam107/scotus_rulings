@@ -4,5 +4,7 @@ plotly
 dash
 networkx
 scikit-learn
+pickleshare
+gunicorn
 
 

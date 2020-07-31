@@ -26,8 +26,8 @@ def animated_2comp(df, select_courts):
                         text='justice',
                         title='Justices Along 2 Components (PCA)',
                         labels={'pc1': 'Principal Component 1', 'pc2': 'Principal Component 2'},
-                        # width=400,
-                        # height=400,
+                        width=600,
+                        height=600,
                         range_x=(-0.2, 1.2),
                         range_y=(-0.2, 1.2),
                         )
@@ -39,10 +39,10 @@ def animated_2comp(df, select_courts):
                         animation_frame='court',
                         animation_group='justice',
                         text='justice',
-                        title='Justices Along 2 Components (PCA)',
+                        title='Visualizing Distances Between Justices (PCA)',
                         labels={'pc1': 'Principal Component 1', 'pc2': 'Principal Component 2'},
-                        # width=400,
-                        # height=400,
+                        width=600,
+                        height=600,
                         range_x=(-0.2, 1.2),
                         range_y=(-0.2, 1.2),
                         )
@@ -60,15 +60,15 @@ def sim_heatmap(sim_mat, justices, all_justices=False):
         hovertemplate='Similarity between %{x} and %{y}: %{z}')))
 
     if all_justices:
-        fig.update_layout(title='Heatmap of Cosine Similarity Between Justices',
+        fig.update_layout(title='Similarity Between All Justices',
                         height=600,
                         width=600,
                         template='simple_white',
                         )
     else:
-        fig.update_layout(title='Heatmap of Cosine Similarity Between Justices in Selected Court',
-                        # height=400,
-                        # width=400,
+        fig.update_layout(title='Similarity Between Justices in Selected Court',
+                        height=600,
+                        width=600,
                         template='simple_white',
                         )
 
@@ -178,7 +178,7 @@ def plot_network(sim_df, cases_df):
     fig = go.Figure(
         data=edge_traces+[node_trace]+[middle_node_trace],
         layout=go.Layout(
-            title='SCOTUS 1999-2019 as Network Graph',
+            title='SCOTUS 1999-2019 Cases Between Justices',
             showlegend=False,
             xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
@@ -190,7 +190,7 @@ def plot_network(sim_df, cases_df):
     return fig
 
 # Helper function for most similar
-def most_similar(df, j1):
+def most_similar(df, j1, js=None):
     similarity = {}
     other_justices = list(df.index)
     other_justices.remove(j1)
@@ -199,7 +199,7 @@ def most_similar(df, j1):
         if len(temp_df.columns) != 0:
             X1 = np.array(temp_df.loc[j1])
             X2 = np.array(temp_df.loc[j2])
-            similarity[j2] = round(float(cosine_similarity(X1.reshape(1, len(X1)), X2.reshape(1, len(X2)))), 3)
+            similarity[j2] = round(float(cosine_similarity(X1.reshape(1, len(X1)), X2.reshape(1, len(X2)))), 2)
     return similarity
 
 def plot_most_similar(df, j1):
@@ -212,7 +212,38 @@ def plot_most_similar(df, j1):
     
     fig = go.Figure(go.Bar(x=y, y=x, orientation='h'))
     fig.update_layout(title=f'Justice {j1} Similarity', yaxis={'categoryorder':'total ascending'})
+    return fig
+
+def check_sim(df, j1, js):
+    similarity = {}
+    other_js = js
+    temp_df = df.loc[js].dropna(axis=1)
+    for j2 in other_js:
+        X1 = np.array(temp_df.loc[j1])
+        X2 = np.array(temp_df.loc[j2])
+        similarity[j2] = round(float(cosine_similarity(X1.reshape(1, len(X1)), X2.reshape(1, len(X2)))), 2)
+    return similarity
+
+def plot_most_similar_2(df, j1, js):
+    '''
+    Returns Plotly figure to plot most similar
+    '''
+    assert len(js) != 0
+    into_cs = js
+    dicty = check_sim(df, j1, into_cs)
+    x = list(dicty.keys())
+    y = list(dicty.values())
+    xn = []
+    yn = []
+    for i, n in enumerate(x):
+        if n != j1:
+            xn.append(n)
+            yn.append(y[i])
+        else:
+            continue
     
+    fig = go.Figure(go.Bar(x=yn, y=xn, orientation='h'))
+    fig.update_layout(title=f'Justice {j1} Similarity for Selected Court', yaxis={'categoryorder':'total ascending'})
     return fig
 
 # Blank figure
@@ -220,5 +251,12 @@ def default_pic():
     fig = go.Figure()
     fig.update_xaxes(visible=False)
     fig.update_yaxes(visible=False)
-    fig.update_layout(title='Choose Justice', template='simple_white')
-    return fig 
+    fig.update_layout(title='No Justice Chosen', template='simple_white')
+    return fig
+
+def default_pic2():
+    fig = go.Figure()
+    fig.update_xaxes(visible=False)
+    fig.update_yaxes(visible=False)
+    fig.update_layout(title='No Court Chosen', template='simple_white')
+    return fig
